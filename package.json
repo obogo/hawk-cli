@@ -1,0 +1,36 @@
+{
+  "name": "hawk-cli",
+  "version": "1.0.0",
+  "description": "Command-line interface for Hawk",
+  "main": "index.js",
+  "bin": {
+    "hawk": "./index.js"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/obogo/hawk-cli.git"
+  },
+  "keywords": [
+    "hawk",
+    "cli"
+  ],
+  "author": "Rob Taylor <roboncode@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/obogo/hawk-cli/issues"
+  },
+  "homepage": "https://github.com/obogo/hawk-cli#readme",
+  "dependencies": {
+    "cli": "^0.11.2",
+    "co": "^4.6.0",
+    "co-prompt": "^1.0.0",
+    "commander": "^2.9.0",
+    "pluralize": "^3.0.0",
+    "read-file": "^0.2.0",
+    "remedial": "^1.0.7",
+    "write": "^0.3.1"
+  }
+}
