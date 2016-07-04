@@ -7,9 +7,39 @@ var mongoose = require('mongoose');
 var apiHelper = require('express-api-helper');
 var _ = require('lodash');
 var config = require('config');
+var paginate = require('mongoose-range-paginate');
 var {Name} = mongoose.model('{Name}');
 
-var load = function (req, res, next, id) {
+function getPaginationOptions(req) {
+    var limit = 50;
+
+    // https://github.com/kilianc/mongoose-range-paginate
+    var options = {};
+    options.startId = req.query.start_id; // the document's id (value) ex. ObjectId()
+    options.sortKey = req.query.sort_key || '_id';
+    options.sort = '-' + options.sortKey;
+    options.startKey = req.query.start_key; // the document's key (value) ex. updatedAt
+    options.limit = isNaN(req.query.limit) ? limit : Math.min(req.query.limit, limit);
+
+    delete req.query.sort_key;
+    delete req.query.start_id;
+    delete req.query.start_key;
+    delete req.query.limit;
+
+    return options;
+}
+
+function getFullURL(req, queryParams) {
+    var fullUrl = req.protocol + '://' + req.get('host') + req.path;
+    for (var e in req.query) {
+        if (req.query.hasOwnProperty(e)) {
+            queryParams.push(e + '=' + encodeURIComponent(req.query[e]));
+        }
+    }
+    return fullUrl;
+}
+
+function load(req, res, next, id) {
     var promise = {Name}.findOne({_id: id}).exec();
     promise.onFulfill(function (app) {
         if (!app) {
@@ -21,13 +51,11 @@ var load = function (req, res, next, id) {
     promise.onReject(function () {
         apiHelper.notFound(req, res);
     });
-};
+}
 
-var create = function (req, res) {
-    apiHelper.requireParams(req, res, ['name'], function () {
-        var app = new {Name}({
-            name: req.body.name
-        });
+function create(req, res) {
+    apiHelper.requireParams(req, res, [/* 'name' */], function () {
+        var app = new {Name}(req.body);
 
         var promise = app.save();
 
@@ -40,9 +68,9 @@ var create = function (req, res) {
             apiHelper.serverError(req, res, err);
         });
     });
-};
+}
 
-var update = function (req, res) {
+function update(req, res) {
     var app = req.app;
 
     app = _.extend(app, req.body);
@@ -56,9 +84,9 @@ var update = function (req, res) {
     promise.onReject(function (err) {
         apiHelper.serverError(req, res, err);
     });
-};
+}
 
-var destroy = function (req, res) {
+function destroy(req, res) {
     var app = req.app;
 
     var promise = app.remove();
@@ -70,13 +98,18 @@ var destroy = function (req, res) {
     promise.onReject(function (err) {
         apiHelper.serverError(req, res, err);
     });
-};
+}
 
-var show = function (req, res) {
+function show(req, res) {
     apiHelper.ok(req, res, req.app || req.user);
-};
+}
 
-var all = function (req, res) {
+function all(req, res) {
+
+    if(req.query.limit) {
+        return all_paginated(req, res);
+    }
+
     var promise = {Name}.find().exec();
     promise.onFulfill(function (list) {
         apiHelper.ok(req, res, {
@@ -88,6 +121,41 @@ var all = function (req, res) {
         apiHelper.serverError(req, res, err);
     });
 };
+
+function all_paginated(req, res) {
+    var options = getPaginationOptions(req);
+
+    var filter = ''; // add fields to add or remove from selection. Ex. '-updatedAt' would remove updatedAt
+    paginate({Name}.find(req.query).select(filter), options).exec(function (err, list) {
+        if (err) {
+            return apiHelper.serverError(req, res, err);
+        }
+        var meta = {
+            limit: options.limit
+        };
+        if (list.length) {
+            meta.nextId = list[list.length - 1].id;
+            meta.nextKey = list[list.length - 1][options.sortKey];
+
+            var queryParams = [];
+            var fullUrl = getFullURL(req, queryParams);
+
+            queryParams.push('limit=' + options.limit);
+            queryParams.push('start_id=' + meta.nextId);
+            queryParams.push('start_key=' + meta.nextKey);
+
+            if (queryParams.length) {
+                fullUrl += "?" + queryParams.join('&');
+            }
+            meta.url = fullUrl;
+        }
+        apiHelper.ok(req, res, {
+            type: '{name}',
+            meta: meta,
+            list: list
+        });
+    });
+}
 
 exports.load = load;
 exports.create = create;

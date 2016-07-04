@@ -15,30 +15,17 @@ String.prototype.capitalize = function () {
     return this.charAt(0).toUpperCase() + this.slice(1);
 };
 
-function moveFile(packageName, templateFile, dest, strings) {
+function moveFile(name, templateFile, dest, strings) {
     readFile(path.join(templatesPath, templateFile), 'utf8', function (err, content) {
 
         strings = strings || {};
-        strings.Name = strings.Name || packageName.capitalize();
-        strings.name = strings.name || packageName;
-        strings.names = strings.names || pluralize(packageName);
+        strings.Name = strings.Name || name.capitalize();
+        strings.name = strings.name || name;
+        strings.names = strings.names || pluralize(name);
 
         content = content.supplant(strings);
-
-        // var destFile;
-        // if(dest.indexOf('.js') === -1) {
-        //     destFile = path.join(dest, packageName + '.js');
-        //     console.log('YES', destFile);
-        // } else {
-        //     destFile = dest;
-        //     console.log('NO', destFile);
-        // }
-        // var destFile = dest.indexOf('.js') === -1 ? path.join(dest, packageName + '.js') : dest;
-        // console.log('destFile', dest);
-
         writeFile(dest, content, function (err) {
             if (err) console.log(err);
-            process.exit(0);
         });
     });
 }
@@ -48,21 +35,43 @@ program
 
 program
     .command('package [name]')
-    .option("-s, --server_path <path>", "Server path")
+    .option("-p, --server_path <path>", "Server path")
+    .option("-a, --append <path>", "Append to package")
     .description('creates a hawk package')
     .action(function (name, options) {
-        if (options.server_path) {
-            moveFile(name, 'package.js', path.join(options.server_path, 'packages', name, 'index.js'));
-            moveFile(name, 'controller.js', path.join(options.server_path, 'packages', name, 'controllers', name.capitalize() + 'Controller.js'));
-            moveFile(name, 'model.js', path.join(options.server_path, 'packages', name, 'models', name.capitalize() + '.js'));
-            moveFile(name, 'route.js', path.join(options.server_path, 'packages', name, 'routes', pluralize(name) + '.js'));
+        var serverPath = options.server_path;
+        if (serverPath) {
+            if (options.append) {
+                readFile(path.join(serverPath, 'packages', name, 'index.js'), 'utf8', function (err, content) {
+                    content = content.replace(/(exports.init = function.*?{)/gi, "$1\n    hawk.invoke(require('./routes/" + pluralize(options.append) + "'));")
+                    content = content.replace(/(\/\/ :: models :: \/\/)/gi, "$1\nrequire('./models/" + options.append.capitalize() + "');")
+                    writeFile(path.join(serverPath, 'packages', name, 'index.js'), content, function (err) {
+                        if (err) console.log(err);
+                    });
+                });
+                moveFile(options.append, 'controller.js', path.join(serverPath, 'packages', name, 'controllers', options.append.capitalize() + 'Controller.js'));
+                moveFile(options.append, 'model.js', path.join(serverPath, 'packages', name, 'models', options.append.capitalize() + '.js'));
+                moveFile(options.append, 'route.js', path.join(serverPath, 'packages', name, 'routes', pluralize(options.append) + '.js'));
+            } else {
+                moveFile(name, 'package.js', path.join(serverPath, 'packages', name, 'index.js'));
+                moveFile(name, 'controller.js', path.join(serverPath, 'packages', name, 'controllers', name.capitalize() + 'Controller.js'));
+                moveFile(name, 'model.js', path.join(serverPath, 'packages', name, 'models', name.capitalize() + '.js'));
+                moveFile(name, 'route.js', path.join(serverPath, 'packages', name, 'routes', pluralize(name) + '.js'));
+            }
+
         } else {
             co(function *() {
-                var serverPath = yield prompt('server dir: ');
-                moveFile(name, 'package.js', path.join(serverPath, 'packages', name));
-                moveFile(name, 'controller.js', path.join(serverPath, 'packages', name, 'controllers'));
-                moveFile(name, 'model.js', path.join(serverPath, 'packages', name, 'models'));
-                moveFile(name, 'route.js', path.join(serverPath, 'packages', name, 'routes'));
+                serverPath = yield prompt('server dir: ');
+                if (options.append) {
+                    name = options.append;
+                } else {
+                    moveFile(name, 'package.js', path.join(serverPath, 'packages', name, 'index.js'));
+                }
+                moveFile(name, 'controller.js', path.join(serverPath, 'packages', name, 'controllers', name.capitalize() + 'Controller.js'));
+                moveFile(name, 'model.js', path.join(serverPath, 'packages', name, 'models', name.capitalize() + '.js'));
+                moveFile(name, 'route.js', path.join(serverPath, 'packages', name, 'routes', pluralize(name) + '.js'));
+
+                process.exit(0);
             });
         }
     });
