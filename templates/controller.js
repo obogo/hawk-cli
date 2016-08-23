@@ -140,7 +140,7 @@ function all_paginated(query, req, res) {
         var meta = {
             limit: options.limit
         };
-        if (list.length) {
+        if (list.length === options.limit) {
             meta.nextId = list[list.length - 1].id;
             meta.nextKey = list[list.length - 1][options.sortKey];
 
