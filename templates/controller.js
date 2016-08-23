@@ -16,7 +16,7 @@ function getPaginationOptions(req) {
     // https://github.com/kilianc/mongoose-range-paginate
     var options = {};
     options.startId = req.query.start_id; // the document's id (value) ex. ObjectId()
-    options.sortKey = req.query.sort_key || '_id';
+    options.sortKey = req.query.sort_key || 'updatedAt';
     options.sort = '-' + options.sortKey;
     options.startKey = req.query.start_key; // the document's key (value) ex. updatedAt
     options.limit = isNaN(req.query.limit) ? limit : Math.min(req.query.limit, limit);
@@ -106,8 +106,16 @@ function show(req, res) {
 
 function all(req, res) {
 
+    var query = {};
+
+    // Example
+    // if (req.query.something) {
+    //     query.something = true
+    // }
+
     if(req.query.limit) {
-        return all_paginated(req, res);
+        // req.query.sort_key = 'createdAt'; // Example of sort_key override
+        return all_paginated(query, req, res);
     }
 
     var promise = {Name}.find().exec();
@@ -122,11 +130,10 @@ function all(req, res) {
     });
 };
 
-function all_paginated(req, res) {
+function all_paginated(query, req, res) {
     var options = getPaginationOptions(req);
-
-    var filter = ''; // add fields to add or remove from selection. Ex. '-updatedAt' would remove updatedAt
-    paginate({Name}.find(req.query).select(filter), options).exec(function (err, list) {
+    var select = ''; // add fields to add or remove from selection. Ex. '-updatedAt' would remove updatedAt
+    paginate({Name}.find(query).select(select), options).exec(function (err, list) {
         if (err) {
             return apiHelper.serverError(req, res, err);
         }
@@ -142,7 +149,11 @@ function all_paginated(req, res) {
 
             queryParams.push('limit=' + options.limit);
             queryParams.push('start_id=' + meta.nextId);
-            queryParams.push('start_key=' + meta.nextKey);
+            if(meta.nextKey instanceof Date) {
+                queryParams.push('start_key=' + meta.nextKey.getTime());
+            } else {
+                queryParams.push('start_key=' + encodeURIComponent(meta.nextKey));
+            }
 
             if (queryParams.length) {
                 fullUrl += "?" + queryParams.join('&');
