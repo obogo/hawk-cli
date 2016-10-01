@@ -40,15 +40,13 @@ function getFullURL(req, queryParams) {
 }
 
 function load(req, res, next, id) {
-    var promise = {Name}.findOne({_id: id}).exec();
-    promise.onFulfill(function (app) {
+    {Name}.findOne({_id: id}).then(function (app) {
         if (!app) {
             return apiHelper.notFound(req, res);
         }
         req.app = app;
         next();
-    });
-    promise.onReject(function () {
+    }, function () {
         apiHelper.notFound(req, res);
     });
 }
@@ -59,12 +57,10 @@ function create(req, res) {
 
         var promise = app.save();
 
-        promise.onFulfill(function (app) {
+        promise.then(function (app) {
             apiHelper.ok(req, res, app);
             hawk.fire('{name}::created', app)
-        });
-
-        promise.onReject(function (err) {
+        }, function (err) {
             apiHelper.serverError(req, res, err);
         });
     });
@@ -76,12 +72,10 @@ function update(req, res) {
     app = _.extend(app, req.body);
 
     var promise = app.save();
-    promise.onFulfill(function (app) {
+    promise.then(function (app) {
         apiHelper.ok(req, res, app);
         hawk.fire('{name}::updated', app);
-    });
-
-    promise.onReject(function (err) {
+    }, function (err) {
         apiHelper.serverError(req, res, err);
     });
 }
@@ -90,12 +84,10 @@ function destroy(req, res) {
     var app = req.app;
 
     var promise = app.remove();
-    promise.onFulfill(function (app) {
+    promise.then(function (app) {
         apiHelper.ok(req, res, app);
         hawk.fire('{name}::removed', app);
-    });
-
-    promise.onReject(function (err) {
+    }, function (err) {
         apiHelper.serverError(req, res, err);
     });
 }
@@ -118,14 +110,13 @@ function all(req, res) {
         return all_paginated(query, req, res);
     }
 
-    var promise = {Name}.find().exec();
-    promise.onFulfill(function (list) {
+    var promise = {Name}.find();
+    promise.then(function (list) {
         apiHelper.ok(req, res, {
             type: "{name}",
             list: list
         });
-    });
-    promise.onReject(function (err) {
+    }, function (err) {
         apiHelper.serverError(req, res, err);
     });
 };
