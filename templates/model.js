@@ -4,6 +4,7 @@ var mongoose = require('mongoose'),
     Schema = mongoose.Schema;
 
 var {Name}Schema = new Schema({
+    // org: {type: Schema.ObjectId, ref: 'Org', required: true, index: true},
     // active: {type: Boolean, default: true},
     // name: {type: String},
     createdAt: {type: Date, default: Date.now},
