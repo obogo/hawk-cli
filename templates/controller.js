@@ -110,7 +110,7 @@ function all(req, res) {
         return all_paginated(query, req, res);
     }
 
-    var promise = {Name}.find();
+    var promise = {Name}.find(query);
     promise.then(function (list) {
         apiHelper.ok(req, res, {
             type: "{name}",
@@ -119,7 +119,27 @@ function all(req, res) {
     }, function (err) {
         apiHelper.serverError(req, res, err);
     });
-};
+}
+
+function count(req, res) {
+
+    var query = {};
+
+    // Example
+    // if (req.query.something) {
+    //     query.something = true
+    // }
+
+    var promise = {Name}.count(query);
+    promise.then(function (count) {
+        apiHelper.ok(req, res, {
+            type: "{name}",
+            count: count
+        });
+    }, function (err) {
+        apiHelper.serverError(req, res, err);
+    });
+}
 
 function all_paginated(query, req, res) {
     var options = getPaginationOptions(req);
@@ -165,6 +185,7 @@ exports.update = update;
 exports.destroy = destroy;
 exports.show = show;
 exports.all = all;
+exports.count = count;
 
 // :: Event Listeners :: //
 hawk.on('{name}::created', function (req) {
