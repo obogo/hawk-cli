@@ -40,11 +40,11 @@ function getFullURL(req, queryParams) {
 }
 
 function load(req, res, next, id) {
-    {Name}.findOne({_id: id}).then(function (app) {
-        if (!app) {
+    {Name}.findOne({_id: id}).then(function ({name}) {
+        if (!{name}) {
             return apiHelper.notFound(req, res);
         }
-        req.app = app;
+        req.{name} = {name};
         next();
     }, function () {
         apiHelper.notFound(req, res);
@@ -67,11 +67,11 @@ function create(req, res) {
 }
 
 function update(req, res) {
-    var app = req.app;
+    var {name} = req.{name};
 
-    app = _.extend(app, req.body);
+    {name} = _.extend({name}, req.body);
 
-    var promise = app.save();
+    var promise = {name}.save();
     promise.then(function (app) {
         apiHelper.ok(req, res, app);
         hawk.fire('{name}::updated', app);
@@ -81,19 +81,19 @@ function update(req, res) {
 }
 
 function destroy(req, res) {
-    var app = req.app;
+    var {name} = req.{name};
 
-    var promise = app.remove();
-    promise.then(function (app) {
-        apiHelper.ok(req, res, app);
-        hawk.fire('{name}::removed', app);
+    var promise = {name}.remove();
+    promise.then(function ({name}) {
+        apiHelper.ok(req, res, {name});
+        hawk.fire('{name}::removed', {name});
     }, function (err) {
         apiHelper.serverError(req, res, err);
     });
 }
 
 function show(req, res) {
-    apiHelper.ok(req, res, req.app || req.user);
+    apiHelper.ok(req, res, req.{name});
 }
 
 function all(req, res) {
