@@ -53,13 +53,13 @@ function load(req, res, next, id) {
 
 function create(req, res) {
     apiHelper.requireParams(req, res, [/* 'name' */], function () {
-        var app = new {Name}(req.body);
+        var {name} = new {Name}(req.body);
 
-        var promise = app.save();
+        var promise = {name}.save();
 
-        promise.then(function (app) {
-            apiHelper.ok(req, res, app);
-            hawk.fire('{name}::created', app)
+        promise.then(function ({name}) {
+            apiHelper.ok(req, res, {name});
+            hawk.fire('{name}::created', {name})
         }, function (err) {
             apiHelper.serverError(req, res, err);
         });
@@ -72,9 +72,9 @@ function update(req, res) {
     {name} = _.extend({name}, req.body);
 
     var promise = {name}.save();
-    promise.then(function (app) {
-        apiHelper.ok(req, res, app);
-        hawk.fire('{name}::updated', app);
+    promise.then(function ({name}) {
+        apiHelper.ok(req, res, {name});
+        hawk.fire('{name}::updated', {name});
     }, function (err) {
         apiHelper.serverError(req, res, err);
     });
