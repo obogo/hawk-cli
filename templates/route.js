@@ -2,9 +2,10 @@
 
 var {name}Ctrl = require('../controllers/{Name}Controller');
 
-module.exports = function (app, config, auth) {
+module.exports = function (app, config, auth, routeHelper) {
 
     var uri = config.uri;
+    // var requiresParam = routeHelper.requireParams('myparam');
 
     app.route(uri + '/{namesDash}')
         .post({name}Ctrl.create)

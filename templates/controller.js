@@ -1,8 +1,5 @@
 'use strict';
 
-/* global exports */
-
-var hawk = require('local-lib').hawk;
 var mongoose = require('mongoose');
 var apiHelper = require('express-api-helper');
 var _ = require('lodash');
@@ -59,7 +56,6 @@ function create(req, res) {
 
         promise.then(function ({name}) {
             apiHelper.ok(req, res, {name});
-            hawk.fire('{name}::created', {name})
         }, function (err) {
             apiHelper.serverError(req, res, err);
         });
@@ -74,7 +70,6 @@ function update(req, res) {
     var promise = {name}.save();
     promise.then(function ({name}) {
         apiHelper.ok(req, res, {name});
-        hawk.fire('{name}::updated', {name});
     }, function (err) {
         apiHelper.serverError(req, res, err);
     });
@@ -86,7 +81,6 @@ function destroy(req, res) {
     var promise = {name}.remove();
     promise.then(function ({name}) {
         apiHelper.ok(req, res, {name});
-        hawk.fire('{name}::removed', {name});
     }, function (err) {
         apiHelper.serverError(req, res, err);
     });
@@ -188,14 +182,14 @@ exports.all = all;
 exports.count = count;
 
 // :: Event Listeners :: //
-hawk.on('{name}::created', function (req) {
-    console.log('#event: {name} created');
-});
-
-hawk.on('{name}::updated', function (req) {
-    console.log('#event: {name} updated');
-});
-
-hawk.on('{name}::removed', function (req) {
-    console.log('#event: {name} removed');
-});
+// {Name}.on('created', function({name}){
+//     console.log('#event - {name} created', {name});
+// });
+//
+// {Name}.on('updated', function({name}){
+//     console.log('#event - {name} updated', {name});
+// });
+//
+// {Name}.on('deleted', function({name}){
+//     console.log('#event - {name} destroyed', {name});
+// });

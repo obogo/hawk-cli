@@ -2,6 +2,6 @@
 require('./models/{Name}');
 
 // :: routes :: //
-exports.init = function (hawk, passport) {
+exports.init = function (hawk) {
     hawk.invoke(require('./routes/{names}'));
 };
