@@ -35,6 +35,7 @@ function moveFile(name, templateFile, dest, strings) {
         strings.name = strings.name || name;
         strings.names = strings.names || pluralize(name);
         strings.namesDash = strings.namesDash || pluralize(name).toDash();
+        strings.namesUnderscore = strings.namesDash.split('-').join('_');
 
         content = content.supplant(strings);
         writeFile(dest, content, function (err) {

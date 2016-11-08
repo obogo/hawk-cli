@@ -41,4 +41,4 @@ schema.options.toJSON.transform = function (doc, ret, options) {
     delete ret.__v;
 };
 
-mongoose.model('{Name}', schema);
+mongoose.model('{Name}', schema, '{namesUnderscore}');
