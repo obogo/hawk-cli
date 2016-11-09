@@ -90,19 +90,19 @@ function show(req, res) {
 
 function all(req, res) {
 
-    var query = {};
+    var conditions = {};
 
     // Example
     // if (req.query.something) {
-    //     query.something = true
+    //     conditions.something = true
     // }
 
     if(req.query.limit) {
         // req.query.sort_key = 'createdAt'; // Example of sort_key override
-        return all_paginated(query, req, res);
+        return all_paginated(conditions, req, res);
     }
 
-    var promise = {Name}.find(query);
+    var promise = {Name}.find(conditions);
     promise.then(function (list) {
         apiHelper.ok(req, res, {
             type: "{name}",
@@ -115,14 +115,14 @@ function all(req, res) {
 
 function count(req, res) {
 
-    var query = {};
+    var conditions = {};
 
     // Example
     // if (req.query.something) {
-    //     query.something = true
+    //     conditions.something = true
     // }
 
-    var promise = {Name}.count(query);
+    var promise = {Name}.count(conditions);
     promise.then(function (count) {
         apiHelper.ok(req, res, {
             type: "{name}",
@@ -133,10 +133,10 @@ function count(req, res) {
     });
 }
 
-function all_paginated(query, req, res) {
+function all_paginated(conditions, req, res) {
     var options = getPaginationOptions(req);
     var select = ''; // add fields to add or remove from selection. Ex. '-updatedAt' would remove updatedAt
-    paginate({Name}.find(query).select(select), options).exec(function (err, list) {
+    paginate({Name}.find(conditions).select(select), options).exec(function (err, list) {
         if (err) {
             return apiHelper.serverError(req, res, err);
         }
