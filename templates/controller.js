@@ -49,16 +49,14 @@ function load(req, res, next, id) {
 }
 
 function create(req, res) {
-    apiHelper.requireParams(req, res, [/* 'name' */], function () {
-        var {name} = new {Name}(req.body);
+    var {name} = new {Name}(req.body);
 
-        var promise = {name}.save();
+    var promise = {name}.save();
 
-        promise.then(function ({name}) {
-            apiHelper.ok(req, res, {name});
-        }, function (err) {
-            apiHelper.serverError(req, res, err);
-        });
+    promise.then(function ({name}) {
+        apiHelper.ok(req, res, {name});
+    }, function (err) {
+        apiHelper.serverError(req, res, err);
     });
 }
 
